@@ -12,7 +12,7 @@ on:
 
 jobs:
   deploy:
-    runs-on: [self-hosted, dev-deployment]
+    runs-on: [self-hosted]
     if: github.event.pull_request.merged == true || github.event_name == 'push'
 
     steps:
