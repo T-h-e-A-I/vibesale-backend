@@ -83,6 +83,11 @@ app.get('/metrics', async (req, res) => {
   res.end(await promClient.register.metrics());
 });
 
+// Ping route for health check and version
+app.get('/ping', (req, res) => {
+  res.json({ status: 'ok', version: '1.0.0' });
+});
+
 // Swagger documentation
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
