@@ -4,6 +4,31 @@ const helmet = require('helmet');
 const swaggerUi = require('swagger-ui-express');
 const YAML = require('yamljs');
 const path = require('path');
+const promClient = require('prom-client');
+
+// Initialize Prometheus metrics
+const collectDefaultMetrics = promClient.collectDefaultMetrics;
+collectDefaultMetrics({ timeout: 5000 });
+
+// Create custom metrics
+const httpRequestDurationMicroseconds = new promClient.Histogram({
+  name: 'http_request_duration_seconds',
+  help: 'Duration of HTTP requests in seconds',
+  labelNames: ['method', 'route', 'status_code'],
+  buckets: [0.1, 0.5, 1, 2, 5]
+});
+
+const httpRequestsTotal = new promClient.Counter({
+  name: 'http_requests_total',
+  help: 'Total number of HTTP requests',
+  labelNames: ['method', 'route', 'status_code']
+});
+
+const httpRequestsInProgress = new promClient.Gauge({
+  name: 'http_requests_in_progress',
+  help: 'Number of HTTP requests in progress',
+  labelNames: ['method', 'route']
+});
 
 // Import routes
 const authRoutes = require('./routes/auth.routes');
@@ -28,6 +53,35 @@ app.use(helmet());
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Prometheus metrics middleware
+app.use((req, res, next) => {
+  const start = Date.now();
+  const route = req.route ? req.route.path : req.path;
+  
+  httpRequestsInProgress.inc({ method: req.method, route });
+  
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+    httpRequestDurationMicroseconds
+      .labels(req.method, route, res.statusCode.toString())
+      .observe(duration / 1000);
+    
+    httpRequestsTotal
+      .labels(req.method, route, res.statusCode.toString())
+      .inc();
+    
+    httpRequestsInProgress.dec({ method: req.method, route });
+  });
+  
+  next();
+});
+
+// Metrics endpoint
+app.get('/metrics', async (req, res) => {
+  res.set('Content-Type', promClient.register.contentType);
+  res.end(await promClient.register.metrics());
+});
 
 // Swagger documentation
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));

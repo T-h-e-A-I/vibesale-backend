@@ -19,6 +19,7 @@
     "helmet": "^7.0.0",
     "jsonwebtoken": "^9.0.0",
     "pg": "^8.10.0",
+    "prom-client": "^15.1.3",
     "swagger-ui-express": "^4.6.2",
     "yamljs": "^0.3.0"
   },

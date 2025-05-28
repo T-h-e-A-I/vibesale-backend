@@ -21,34 +21,19 @@ jobs:
       - name: Create .env file
         run: |
           echo "PORT=2020" >> .env
-          echo "REDIS_URL=redis://:password@35.154.125.245:6379/0" >> .env
           echo "ACCESS_TOKEN_SECRET='Ux7#pL3@qR8*vZ2!fY6^wN4&jH1'" >> .env
           echo "REFRESH_TOKEN_SECRET=\"Bx9\$tR2#eF7@mL5*cQ1!hG4^yP8&kS3\"" >> .env
-          echo "DB_USER=afs" >> .env
-          echo "DB_HOST=35.154.125.245" >> .env
-          echo "DB_NAME=afs_staging" >> .env
-          echo "DB_PASSWORD=password" >> .env
+          echo "DB_USER={{ secrets.DB_USER }}" >> .env
+          echo "DB_HOST={{ secrets.DB_HOST }}" >> .env
+          echo "DB_NAME={{ secrets.DB_NAME }}" >> .env
+          echo "DB_PASSWORD={{ secrets.DB_PASSWORD }}" >> .env
           echo "DB_PORT=5432" >> .env
-          echo "STORE_ID=${{ secrets.STORE_ID }}" >> .env
-          echo "STORE_PASSWORD=${{ secrets.STORE_PASSWORD }}" >> .env
-          echo "SSL_TEST_MODE=false" >> .env
-          echo "POST_PAYMENT_URL=http://35.154.125.245:2020/api/payment" >> .env
-          echo "FRONTEND_URL=https://www.acsfutureschool.com" >> .env
-          echo "VERCEL_SHARE=737V1i2TwDv5B3tpR3AwlmJyJSP3Ydzr" >> .env
-          echo "ACS_CRM_API_URL=https://shop.aparsclassroom.com" >> .env
-          echo "AFFILIATE_ACCESS_TOKEN_SECRET='Ux7#pL3@qR8*6^wN4&jH1vZ2!fY'" >> .env
-          echo "CUTTLY_API_KEY='2034170e9e54d29bf237ca405a18549831e3d'" >> .env
-          echo "SEND_SMS_URL=http://54.175.70.28:2000/sendsms" >> .env
-          echo "BKASH_USERNAME=${{ secrets.BKASH_USERNAME }}" >> .env
-          echo "BKASH_PASSWORD=${{ secrets.BKASH_PASSWORD }}" >> .env
-          echo "BKASH_SECRET=${{ secrets.BKASH_SECRET }}" >> .env
-          echo "BKASH_KEY=${{ secrets.BKASH_KEY }}" >> .env
-          echo "BKASH_BASE_URL=${{ secrets.BKASH_BASE_URL }}" >> .env
+
 
       - name: Install dependencies
         run: npm i
 
       - name: Start application
         run: |
-          pm2 delete afs-backend-content || true
-          pm2 start "npm run dev" --name afs-backend-content 
+          pm2 delete vibesale-backend || true
+          pm2 start "npm run dev" --name vibesale-backend 
