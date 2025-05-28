@@ -1,0 +1,2312 @@
+openapi: 3.0.3
+info:
+  title: E-commerce Helper API
+  description: Comprehensive API documentation for the E-commerce Helper microservices
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: api@ecommerce-helper.com
+servers:
+  - url: https://api.ecommerce-helper.com/v1
+    description: Production server
+  - url: https://staging-api.ecommerce-helper.com/v1
+    description: Staging server
+  - url: http://localhost:8080/v1
+    description: Development server
+
+tags:
+  - name: Auth
+    description: Authentication and authorization
+  - name: Communication
+    description: Phone calls, SMS, and email services
+  - name: AI
+    description: AI agent orchestration
+  - name: Analytics
+    description: User behavior analytics
+  - name: Search
+    description: Vector search operations
+  - name: Inventory
+    description: Product and inventory management
+  - name: Dashboard
+    description: Metrics and reporting
+  - name: Integration
+    description: External service integrations
+  - name: Orders
+    description: Order management
+  - name: Offers
+    description: Offer management
+  - name: Support
+    description: Customer support
+
+paths:
+  # Auth Service Endpoints
+  /auth/login:
+    post:
+      tags:
+        - Auth
+      summary: Login
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Successful login
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /auth/refresh:
+    post:
+      tags:
+        - Auth
+      summary: Refresh JWT token
+      operationId: refreshToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshTokenRequest'
+      responses:
+        '200':
+          description: Token refreshed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /auth/logout:
+    post:
+      tags:
+        - Auth
+      summary: User logout
+      operationId: logout
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Successfully logged out
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /auth/client:
+    post:
+      tags:
+        - Auth
+      summary: Register a new client
+      operationId: registerClient
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClientRequest'
+      responses:
+        '201':
+          description: Client registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Client'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /auth/client/{clientId}:
+    get:
+      tags:
+        - Auth
+      summary: Get client details
+      operationId: getClient
+      parameters:
+        - name: clientId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Client details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Client'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  # Communication Service Endpoints
+  /communication/calls:
+    post:
+      tags:
+        - Communication
+      summary: Initiate a phone call
+      operationId: initiateCall
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CallRequest'
+      responses:
+        '200':
+          description: Call initiated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CallResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    get:
+      tags:
+        - Communication
+      summary: List phone calls
+      operationId: listCalls
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: List of phone calls
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  calls:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CallResponse'
+                  total:
+                    type: integer
+                  page:
+                    type: integer
+                  limit:
+                    type: integer
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /communication/calls/{callId}:
+    get:
+      tags:
+        - Communication
+      summary: Get call details
+      operationId: getCall
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: callId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Call details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CallResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /communication/sms:
+    post:
+      tags:
+        - Communication
+      summary: Send SMS
+      operationId: sendSMS
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SMSRequest'
+      responses:
+        '200':
+          description: SMS sent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SMSResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    get:
+      tags:
+        - Communication
+      summary: List SMS messages
+      operationId: listSMS
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: List of SMS messages
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  messages:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SMSResponse'
+                  total:
+                    type: integer
+                  page:
+                    type: integer
+                  limit:
+                    type: integer
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /communication/sms/{messageId}:
+    get:
+      tags:
+        - Communication
+      summary: Get SMS message details
+      operationId: getSMS
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: messageId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: SMS message details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SMSResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /communication/email:
+    post:
+      tags:
+        - Communication
+      summary: Send email
+      operationId: sendEmail
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmailRequest'
+      responses:
+        '200':
+          description: Email sent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmailResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    get:
+      tags:
+        - Communication
+      summary: List emails
+      operationId: listEmails
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: List of emails
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  emails:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/EmailResponse'
+                  total:
+                    type: integer
+                  page:
+                    type: integer
+                  limit:
+                    type: integer
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /communication/email/{emailId}:
+    get:
+      tags:
+        - Communication
+      summary: Get email details
+      operationId: getEmail
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: emailId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Email details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmailResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /communication/socials/message:
+    post:
+      tags:
+        - Communication
+      summary: Send a message via Social Media
+      operationId: sendSocialMediaMessage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SocialMediaMessageRequest'
+      responses:
+        '200':
+          description: Message sent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SocialMediaMessageResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    get:
+      tags:
+        - Communication
+      summary: List social media messages
+      operationId: listSocialMessages
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: List of social media messages
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  messages:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SocialMediaMessageResponse'
+                  total:
+                    type: integer
+                  page:
+                    type: integer
+                  limit:
+                    type: integer
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /communication/socials/message/{messageId}:
+    get:
+      tags:
+        - Communication
+      summary: Get social media message details
+      operationId: getSocialMessage
+      parameters:
+        - name: messageId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Social media message details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SocialMediaMessageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  # AI Orchestrator Endpoints
+  /ai/agents:
+    get:
+      tags:
+        - AI
+      summary: List AI agents
+      operationId: listAgents
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of AI agents
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AIAgent'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /ai/agents/{agentId}/execute:
+    post:
+      tags:
+        - AI
+      summary: Execute AI agent task
+      operationId: executeAgentTask
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: agentId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgentTaskRequest'
+      responses:
+        '200':
+          description: Task executed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentTaskResponse'
+
+  /ai/chat:
+    post:
+      tags:
+        - AI
+      summary: Chat with AI assistant
+      operationId: chatWithAI
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatRequest'
+      responses:
+        '200':
+          description: Chat response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatResponse'
+
+  # User Analytics Endpoints
+  /analytics/users/{userId}/behavior:
+    get:
+      tags:
+        - Analytics
+      summary: Get user behavior analysis
+      operationId: getUserBehavior
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User behavior data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserBehavior'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /analytics/users/{userId}/tags:
+    get:
+      tags:
+        - Analytics
+      summary: Get user tags
+      operationId: getUserTags
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User tags
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserTag'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /analytics/sentiment:
+    post:
+      tags:
+        - Analytics
+      summary: Analyze sentiment
+      operationId: analyzeSentiment
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SentimentRequest'
+      responses:
+        '200':
+          description: Sentiment analysis result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SentimentResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  # Vector Search Endpoints
+  /search/query:
+    post:
+      tags:
+        - Search
+      summary: Natural language search
+      operationId: naturalLanguageSearch
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SearchRequest'
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /search/similar:
+    post:
+      tags:
+        - Search
+      summary: Find similar items
+      operationId: findSimilar
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SimilarityRequest'
+      responses:
+        '200':
+          description: Similar items
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SimilarityResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  # Inventory Service Endpoints
+  /inventory/products:
+    get:
+      tags:
+        - Inventory
+      summary: List products
+      operationId: listProducts
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Product list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductList'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+    post:
+      tags:
+        - Inventory
+      summary: Create product
+      operationId: createProduct
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductRequest'
+      responses:
+        '201':
+          description: Product created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /inventory/products/{productId}:
+    get:
+      tags:
+        - Inventory
+      summary: Get product details
+      operationId: getProduct
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Product details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+    put:
+      tags:
+        - Inventory
+      summary: Update product
+      operationId: updateProduct
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductRequest'
+      responses:
+        '200':
+          description: Product updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /inventory/stock/{productId}:
+    get:
+      tags:
+        - Inventory
+      summary: Get stock level
+      operationId: getStockLevel
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Stock level
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StockLevel'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+    put:
+      tags:
+        - Inventory
+      summary: Update stock level
+      operationId: updateStockLevel
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StockUpdate'
+      responses:
+        '200':
+          description: Stock updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StockLevel'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  # Dashboard Service Endpoints
+  /dashboard/metrics:
+    get:
+      tags:
+        - Dashboard
+      summary: Get dashboard metrics
+      operationId: getDashboardMetrics
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: startDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Dashboard metrics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardMetrics'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /dashboard/revenue:
+    get:
+      tags:
+        - Dashboard
+      summary: Get revenue data
+      operationId: getRevenue
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: period
+          in: query
+          schema:
+            type: string
+            enum: [daily, weekly, monthly, yearly]
+            default: monthly
+      responses:
+        '200':
+          description: Revenue data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RevenueData'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /dashboard/ai-costs:
+    get:
+      tags:
+        - Dashboard
+      summary: Get AI agent costs
+      operationId: getAICosts
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: startDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: AI costs
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AICosts'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  # Integration Service Endpoints
+  /integrations/ecommerce/sync:
+    post:
+      tags:
+        - Integration
+      summary: Sync with e-commerce platform
+      operationId: syncEcommerce
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SyncRequest'
+      responses:
+        '200':
+          description: Sync completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /integrations/social/post:
+    post:
+      tags:
+        - Integration
+      summary: Post to social media
+      operationId: postToSocial
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SocialPostRequest'
+      responses:
+        '200':
+          description: Posted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SocialPostResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  # Orders Service Endpoints
+  /orders:
+    get:
+      tags:
+        - Orders
+      summary: List all orders
+      operationId: listOrders
+      responses:
+        '200':
+          description: List of orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Order'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    post:
+      tags:
+        - Orders
+      summary: Create a new order
+      operationId: createOrder
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderRequest'
+      responses:
+        '201':
+          description: Order created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /orders/{orderId}:
+    get:
+      tags:
+        - Orders
+      summary: Get order details
+      operationId: getOrder
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Order details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    put:
+      tags:
+        - Orders
+      summary: Update order
+      operationId: updateOrder
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderRequest'
+      responses:
+        '200':
+          description: Order updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    delete:
+      tags:
+        - Orders
+      summary: Delete order
+      operationId: deleteOrder
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Order deleted
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  # Offers Service Endpoints
+  /offers:
+    get:
+      tags:
+        - Offers
+      summary: List all offers
+      operationId: listOffers
+      responses:
+        '200':
+          description: List of offers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Offer'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    post:
+      tags:
+        - Offers
+      summary: Create a new offer
+      operationId: createOffer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OfferRequest'
+      responses:
+        '201':
+          description: Offer created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Offer'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /offers/{offerId}:
+    get:
+      tags:
+        - Offers
+      summary: Get offer details
+      operationId: getOffer
+      parameters:
+        - name: offerId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Offer details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Offer'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    put:
+      tags:
+        - Offers
+      summary: Update offer
+      operationId: updateOffer
+      parameters:
+        - name: offerId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OfferRequest'
+      responses:
+        '200':
+          description: Offer updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Offer'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    delete:
+      tags:
+        - Offers
+      summary: Delete offer
+      operationId: deleteOffer
+      parameters:
+        - name: offerId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Offer deleted
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  # Support Service Endpoints
+  /support/tickets:
+    get:
+      tags:
+        - Support
+      summary: List all support tickets
+      operationId: listTickets
+      responses:
+        '200':
+          description: List of tickets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Ticket'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    post:
+      tags:
+        - Support
+      summary: Create a new support ticket
+      operationId: createTicket
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TicketRequest'
+      responses:
+        '201':
+          description: Ticket created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ticket'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /support/tickets/{ticketId}:
+    get:
+      tags:
+        - Support
+      summary: Get ticket details
+      operationId: getTicket
+      parameters:
+        - name: ticketId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Ticket details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ticket'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    put:
+      tags:
+        - Support
+      summary: Update ticket
+      operationId: updateTicket
+      parameters:
+        - name: ticketId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TicketRequest'
+      responses:
+        '200':
+          description: Ticket updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ticket'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    delete:
+      tags:
+        - Support
+      summary: Delete ticket
+      operationId: deleteTicket
+      parameters:
+        - name: ticketId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Ticket deleted
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: Not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    ServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  schemas:
+    # Auth Schemas
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+
+    LoginResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+        refresh_token:
+          type: string
+        expires_in:
+          type: integer
+        user:
+          $ref: '#/components/schemas/User'
+
+    RefreshTokenRequest:
+      type: object
+      required:
+        - refresh_token
+      properties:
+        refresh_token:
+          type: string
+
+    TokenResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+        expires_in:
+          type: integer
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+        name:
+          type: string
+        role:
+          type: string
+          enum: [admin, user, agent]
+
+    # Communication Schemas
+    CallRequest:
+      type: object
+      required:
+        - to_number
+      properties:
+        to_number:
+          type: string
+        from_number:
+          type: string
+        webhook_url:
+          type: string
+
+    CallResponse:
+      type: object
+      properties:
+        call_id:
+          type: string
+        status:
+          type: string
+          enum: [initiated, in_progress, completed, failed]
+        duration:
+          type: integer
+
+    TranscriptionResponse:
+      type: object
+      properties:
+        call_id:
+          type: string
+        transcription:
+          type: string
+        language:
+          type: string
+        confidence:
+          type: number
+
+    SMSRequest:
+      type: object
+      required:
+        - to_number
+        - message
+      properties:
+        to_number:
+          type: string
+        from_number:
+          type: string
+        message:
+          type: string
+
+    SMSResponse:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            message_id:
+              type: string
+            status:
+              type: string
+              enum: [sent, delivered, failed]
+
+    EmailRequest:
+      type: object
+      required:
+        - to
+        - subject
+        - body
+      properties:
+        to:
+          type: array
+          items:
+            type: string
+        cc:
+          type: array
+          items:
+            type: string
+        subject:
+          type: string
+        body:
+          type: string
+        html:
+          type: boolean
+        attachments:
+          type: array
+          items:
+            type: string
+
+    EmailResponse:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            message_id:
+              type: string
+            status:
+              type: string
+              enum: [sent, queued, failed]
+    SocialMediaMessageRequest:
+      type: object
+      required:
+        - to
+        - message
+        - social_media_platform
+      properties:
+        to:
+          type: string
+        message:
+          type: string
+        social_media_platform:
+          type: string
+          enum: [facebook, instagram, twitter, linkedin]
+
+    SocialMediaMessageResponse:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            message_id:
+              type: string
+            status:
+              type: string
+              enum: [sent, queued, failed]
+
+    # AI Schemas
+    AIAgent:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+          enum: [messaging, social_media, order_tracking, analytics]
+        status:
+          type: string
+          enum: [active, inactive, busy]
+        capabilities:
+          type: array
+          items:
+            type: string
+
+    AgentTaskRequest:
+      type: object
+      required:
+        - task_type
+        - parameters
+      properties:
+        task_type:
+          type: string
+        parameters:
+          type: object
+        priority:
+          type: string
+          enum: [low, medium, high]
+
+    AgentTaskResponse:
+      type: object
+      properties:
+        task_id:
+          type: string
+        status:
+          type: string
+          enum: [queued, processing, completed, failed]
+        result:
+          type: object
+        error:
+          type: string
+
+    ChatRequest:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+        context:
+          type: object
+        session_id:
+          type: string
+
+    ChatResponse:
+      type: object
+      properties:
+        response:
+          type: string
+        suggested_actions:
+          type: array
+          items:
+            type: string
+        confidence:
+          type: number
+
+    # Analytics Schemas
+    UserBehavior:
+      type: object
+      properties:
+        user_id:
+          type: string
+        total_orders:
+          type: integer
+        average_order_value:
+          type: number
+        last_activity:
+          type: string
+          format: date-time
+        engagement_score:
+          type: number
+        predicted_lifetime_value:
+          type: number
+
+    UserTag:
+      type: object
+      properties:
+        tag:
+          type: string
+          enum: [repetitive_customer, potential_buyer, vip, at_risk, new_customer]
+        confidence:
+          type: number
+        created_at:
+          type: string
+          format: date-time
+
+    SentimentRequest:
+      type: object
+      required:
+        - text
+      properties:
+        text:
+          type: string
+        language:
+          type: string
+
+    SentimentResponse:
+      type: object
+      properties:
+        sentiment:
+          type: string
+          enum: [positive, negative, neutral]
+        score:
+          type: number
+        emotions:
+          type: object
+          properties:
+            joy:
+              type: number
+            anger:
+              type: number
+            sadness:
+              type: number
+            fear:
+              type: number
+
+    # Search Schemas
+    SearchRequest:
+      type: object
+      required:
+        - query
+      properties:
+        query:
+          type: string
+        filters:
+          type: object
+        limit:
+          type: integer
+          default: 10
+
+    SearchResponse:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/SearchResult'
+        total_count:
+          type: integer
+        facets:
+          type: object
+
+    SearchResult:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [message, call_transcript, email, product, order]
+        content:
+          type: string
+        score:
+          type: number
+        highlight:
+          type: string
+        metadata:
+          type: object
+
+    SimilarityRequest:
+      type: object
+      required:
+        - item_id
+      properties:
+        item_id:
+          type: string
+        type:
+          type: string
+        limit:
+          type: integer
+          default: 5
+
+    SimilarityResponse:
+      type: object
+      properties:
+        similar_items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SimilarItem'
+
+    SimilarItem:
+      type: object
+      properties:
+        id:
+          type: string
+        similarity_score:
+          type: number
+        metadata:
+          type: object
+
+    # Inventory Schemas
+    Product:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+        images:
+          type: array
+          items:
+            type: string
+        categories:
+          type: array
+          items:
+            type: string
+        sku:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ProductRequest:
+      type: object
+      required:
+        - name
+        - price
+        - sku
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+        images:
+          type: array
+          items:
+            type: string
+        categories:
+          type: array
+          items:
+            type: string
+        sku:
+          type: string
+
+    ProductList:
+      type: object
+      properties:
+        products:
+          type: array
+          items:
+            $ref: '#/components/schemas/Product'
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+
+    StockLevel:
+      type: object
+      properties:
+        product_id:
+          type: string
+        quantity:
+          type: integer
+        reserved:
+          type: integer
+        available:
+          type: integer
+        warehouse_id:
+          type: string
+
+    StockUpdate:
+      type: object
+      required:
+        - quantity
+      properties:
+        quantity:
+          type: integer
+        operation:
+          type: string
+          enum: [set, increment, decrement]
+        warehouse_id:
+          type: string
+
+    # Dashboard Schemas
+    DashboardMetrics:
+      type: object
+      properties:
+        revenue:
+          type: number
+        orders:
+          type: integer
+        customers:
+          type: integer
+        ai_requests:
+          type: integer
+        ai_costs:
+          type: number
+        inventory_value:
+          type: number
+
+    RevenueData:
+      type: object
+      properties:
+        period:
+          type: string
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+              revenue:
+                type: number
+              orders:
+                type: integer
+
+    AICosts:
+      type: object
+      properties:
+        total_cost:
+          type: number
+        by_agent:
+          type: object
+        by_model:
+          type: object
+        trend:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+              cost:
+                type: number
+
+    # Integration Schemas
+    SyncRequest:
+      type: object
+      required:
+        - platform
+        - sync_type
+      properties:
+        platform:
+          type: string
+          enum: [shopify, woocommerce, magento, custom]
+        sync_type:
+          type: string
+          enum: [products, orders, customers, inventory]
+        since:
+          type: string
+          format: date-time
+
+    SyncResponse:
+      type: object
+      properties:
+        sync_id:
+          type: string
+        status:
+          type: string
+          enum: [in_progress, completed, failed]
+        records_synced:
+          type: integer
+        errors:
+          type: array
+          items:
+            type: string
+
+    SocialPostRequest:
+      type: object
+      required:
+        - platforms
+        - content
+      properties:
+        platforms:
+          type: array
+          items:
+            type: string
+            enum: [facebook, instagram, twitter, linkedin]
+        content:
+          type: string
+        media:
+          type: array
+          items:
+            type: string
+        schedule_time:
+          type: string
+          format: date-time
+
+    SocialPostResponse:
+      type: object
+      properties:
+        post_id:
+          type: string
+        status:
+          type: string
+          enum: [posted, scheduled, failed]
+        platform_ids:
+          type: object
+
+    # Common Schemas
+    Error:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        data:
+          type: object
+
+    FacebookMessageRequest:
+      type: object
+      required:
+        - recipient_id
+        - message
+      properties:
+        recipient_id:
+          type: string
+          description: Facebook user ID to send the message to
+        message:
+          type: string
+          description: The message text to send
+
+    FacebookMessageResponse:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            message_id:
+              type: string
+            status:
+              type: string
+              enum: [sent, failed]
+
+    # Orders Schemas
+    Order:
+      type: object
+      properties:
+        id:
+          type: string
+        customer_id:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+        status:
+          type: string
+          enum: [pending, processing, shipped, delivered, cancelled]
+        created_at:
+          type: string
+          format: date-time
+
+    OrderRequest:
+      type: object
+      required:
+        - customer_id
+        - items
+      properties:
+        customer_id:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+
+    OrderItem:
+      type: object
+      required:
+        - product_id
+        - quantity
+      properties:
+        product_id:
+          type: string
+        quantity:
+          type: integer
+
+    # Offers Schemas
+    Offer:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        discount:
+          type: number
+        valid_until:
+          type: string
+          format: date-time
+
+    OfferRequest:
+      type: object
+      required:
+        - title
+        - discount
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        discount:
+          type: number
+        valid_until:
+          type: string
+          format: date-time
+
+    # Support Schemas
+    Ticket:
+      type: object
+      properties:
+        id:
+          type: string
+        customer_id:
+          type: string
+        subject:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: [open, in_progress, resolved, closed]
+        created_at:
+          type: string
+          format: date-time
+
+    TicketRequest:
+      type: object
+      required:
+        - customer_id
+        - subject
+        - description
+      properties:
+        customer_id:
+          type: string
+        subject:
+          type: string
+        description:
+          type: string
+
+    ClientRequest:
+      type: object
+      required:
+        - name
+        - email
+        - phone
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+
+    Client:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
