@@ -29,11 +29,20 @@ jobs:
           echo "DB_PASSWORD={{ secrets.DB_PASSWORD }}" >> .env
           echo "DB_PORT=5432" >> .env
 
-
-      - name: Install dependencies
-        run: npm i
-
-      - name: Start application
+      - name: Stop and remove existing containers
         run: |
-          pm2 delete vibesale-backend || true
-          pm2 start "npm run dev" --name vibesale-backend 
+          docker-compose down || true
+          docker system prune -f
+
+      - name: Build and start Docker containers
+        run: |
+          docker-compose build --no-cache
+          docker-compose up -d
+
+      - name: Wait for application to be ready
+        run: |
+          sleep 30
+          curl -f http://localhost:2020/health || exit 1
+
+      - name: Show running containers
+        run: docker-compose ps 

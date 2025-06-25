@@ -88,6 +88,11 @@ app.get('/ping', (req, res) => {
   res.json({ status: 'ok', version: '2.0.0' });
 });
 
+// Health check endpoint for Docker
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'healthy', timestamp: new Date().toISOString() });
+});
+
 // Swagger documentation
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
