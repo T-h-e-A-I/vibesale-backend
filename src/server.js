@@ -85,7 +85,7 @@ app.get('/metrics', async (req, res) => {
 
 // Ping route for health check and version
 app.get('/ping', (req, res) => {
-  res.json({ status: 'ok', version: '2.0.0' });
+  res.json({ status: 'ok', version: '3.0.0' });
 });
 
 // Health check endpoint for Docker
