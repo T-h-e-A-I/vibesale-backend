@@ -6,6 +6,17 @@ set -e
 
 echo "🚀 Starting Vibesale Backend deployment..."
 
+# Pull latest changes from repository
+echo "📥 Pulling latest changes from repository..."
+git pull origin main || {
+    echo "❌ Failed to pull latest changes!"
+    exit 1
+}
+
+# Show recent commits
+echo "📋 Recent commits:"
+git log --oneline -5
+
 # Stop existing containers
 echo "📦 Stopping existing containers..."
 docker-compose down || true

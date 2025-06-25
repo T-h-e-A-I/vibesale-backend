@@ -18,6 +18,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: Pull latest changes
+        run: |
+          git pull origin main
+          git log --oneline -5
+
       - name: Create .env file
         run: |
           echo "PORT=2020" >> .env
